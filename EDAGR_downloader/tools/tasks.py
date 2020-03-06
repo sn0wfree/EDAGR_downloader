@@ -206,6 +206,7 @@ class TaskCreatorfile(object):
             for chunk in r.iter_content(chunk_size=1024):  # 边下载边存硬盘
                 if chunk:
                     code.write(chunk)
+        print(file_path+' downloaded!')
 
 
 def run(base_url='https://www.sec.gov/Archives/edgar/daily-index/'):

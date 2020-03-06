@@ -1,0 +1,12 @@
+setup.py
+EDAGR_downloader/__init__.py
+EDAGR_downloader/db.py
+EDAGR_downloader/header.py
+EDAGR_downloader/tasks.py
+EDAGR_downloader.egg-info/PKG-INFO
+EDAGR_downloader.egg-info/SOURCES.txt
+EDAGR_downloader.egg-info/dependency_links.txt
+EDAGR_downloader.egg-info/requires.txt
+EDAGR_downloader.egg-info/top_level.txt
+EDAGR_downloader/utils/MySQLConn_v004_node.py
+EDAGR_downloader/utils/__init__.py

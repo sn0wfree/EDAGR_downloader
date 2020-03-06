@@ -1,8 +1,8 @@
 # coding=utf-8
+import os
 import time
 import uuid
 
-import os
 import pandas as pd
 import requests
 
@@ -208,12 +208,16 @@ class TaskCreatorfile(object):
                     code.write(chunk)
 
 
-if __name__ == '__main__':
-    base_url = 'https://www.sec.gov/Archives/edgar/daily-index/'
+def run(base_url='https://www.sec.gov/Archives/edgar/daily-index/'):
     TaskCreatorYrs.auto_update_year(base_url=base_url)
     TaskCreatorQtr.update(db='EDAGR', source_table='tasks_links_yrs', target_table='tasks_links_file')
     # TaskCreatorfile.get_1_task()
     # sql = 'SELECT Size FROM `tasks_links_file`'
     # c = Source.tasks_links_yrs.sql2data(sql)
     TaskCreatorfile.download()
+
+
+if __name__ == '__main__':
+    run()
+
     pass

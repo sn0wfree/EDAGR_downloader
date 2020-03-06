@@ -6,8 +6,8 @@ import uuid
 import pandas as pd
 import requests
 
-from EDAGR_downloader.db import Source
-from EDAGR_downloader.header import Header
+from EDAGR_downloader.tools.db import Source
+from EDAGR_downloader.tools.header import Header
 
 
 def get_task(obj, db, table):
@@ -94,7 +94,7 @@ class TaskCreatorYrs(object):
 
     @classmethod
     def upload(cls, df, db='EDAGR', table='tasks_links_yrs'):
-        Source.tasks_links_yrs.df2sql(df, db=db, table=table, csv_store_path='./')
+        Source.tasks_links_yrs.df2sql(df, db=db, table=table, csv_store_path='../')
         # table, db = None
 
     @classmethod
@@ -146,7 +146,7 @@ class TaskCreatorQtr(object):
 
     @classmethod
     def upload(cls, df, db, table, obj):
-        obj.df2sql(df, table=table, db=db, csv_store_path='./')
+        obj.df2sql(df, table=table, db=db, csv_store_path='../')
 
     @classmethod
     def update(cls, db='EDAGR', source_table='tasks_links_yrs', target_table='tasks_links_file'):

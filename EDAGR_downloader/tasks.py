@@ -184,6 +184,7 @@ class TaskCreatorfile(object):
                 cls.rm_task(res, obj=obj, db=db, table=table)
             else:
                 break
+            time.sleep(1)
 
     # return get_task(obj=obj,db=db,table=table)
     @staticmethod

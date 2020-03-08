@@ -212,13 +212,16 @@ class TaskCreatorfile(object):
         print(file_path+' downloaded!')
 
 
-def run(base_url='https://www.sec.gov/Archives/edgar/daily-index/'):
-    TaskCreatorYrs.auto_update_year(base_url=base_url)
-    TaskCreatorQtr.update(db='EDAGR', source_table='tasks_links_yrs', target_table='tasks_links_file')
+def run(base_url='https://www.sec.gov/Archives/edgar/daily-index/', download_base_url=True, download_qtr_url=True, download_file=True):
+    if download_base_url:
+        TaskCreatorYrs.auto_update_year(base_url=base_url)
+    if download_qtr_url:
+        TaskCreatorQtr.update(db='EDAGR', source_table='tasks_links_yrs', target_table='tasks_links_file')
     # TaskCreatorfile.get_1_task()
     # sql = 'SELECT Size FROM `tasks_links_file`'
     # c = Source.tasks_links_yrs.sql2data(sql)
-    TaskCreatorfile.download(obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file')
+    if download_file:
+        TaskCreatorfile.download(obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file')
 
 
 if __name__ == '__main__':

@@ -177,14 +177,15 @@ class TaskCreatorfile(object):
         print(uuid)
 
     @classmethod
-    def download(cls, obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file'):
+    def download(cls, obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file',store_path=None):
+        session = requests.sessions.session()
         while 1:
             print('get task!')
             status, res = get_task(obj=obj, db=db, table=table, order_by='order by yrs desc')
             uuid = res['uuid_file'].values[0]
             print(f'{uuid} got and downloading ')
             if status != 'empty':
-                cls.download_file(res)
+                cls.download_file(res,session=session,current_path=store_path)
                 cls.rm_task(uuid, obj=obj, db=db, table=table)
                 print(f'{uuid} downloaded ')
             else:
@@ -193,12 +194,12 @@ class TaskCreatorfile(object):
 
     # return get_task(obj=obj,db=db,table=table)
     @staticmethod
-    def download_file(res, session=None):
+    def download_file(res, session=None,current_path=None):
         url = res['url'][0]
         filename = res['Name'][0]
         yrs = int(res['yrs'][0])
         qtr = res['QTR'][0].rstrip('/')
-        current_path = os.getcwd()
+        current_path = os.getcwd() if current_path is None else current_path
         path = f'{current_path}/{yrs}/{qtr}'
         if os.path.exists(path):
             pass
@@ -209,15 +210,16 @@ class TaskCreatorfile(object):
 
         file_path = f'{path}/{filename}'
         with open(file_path, "wb") as code:
-            # code.write(r.content)
-
-            for chunk in r.iter_content(chunk_size=1024):  # 边下载边存硬盘
-                if chunk:
-                    code.write(chunk)
+            code.write(r.content)
+            # for chunk in r.iter_content(chunk_size=1024):  # 边下载边存硬盘
+            #     if chunk:
+            #         code.write(chunk)
         print(file_path + ' downloaded!')
 
 
-def run(base_url='https://www.sec.gov/Archives/edgar/daily-index/', download_base_url=True, download_qtr_url=True,
+def run(base_url='https://www.sec.gov/Archives/edgar/daily-index/',
+        download_base_url=True,
+        download_qtr_url=True,
         download_file=True):
     if download_base_url:
         TaskCreatorYrs.auto_update_year(base_url=base_url)
@@ -227,7 +229,7 @@ def run(base_url='https://www.sec.gov/Archives/edgar/daily-index/', download_bas
     # sql = 'SELECT Size FROM `tasks_links_file`'
     # c = Source.tasks_links_yrs.sql2data(sql)
     if download_file:
-        TaskCreatorfile.download(obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file')
+        TaskCreatorfile.download(obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file',store_path=None)
 
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@
 import datetime
 import os
 import uuid
+
 import pandas as pd
 import requests
 import requests_cache
@@ -22,7 +23,6 @@ class ParserFormBeFore2015(object):
     @staticmethod
     def get_sitemap(sitemap='https://www.sec.gov/Archives/edgar/daily-index/sitemap.xml', tofile=False):
         name = os.path.split(sitemap)[-1]
-
         r = requests.get(sitemap, stream=True)
         if tofile:
             with open(name, 'wb') as f:
@@ -42,9 +42,9 @@ class ParserFormBeFore2015(object):
             yrs = loc.split('/')[6]
             qtr = loc.split('/')[7]
 
-            h.append((lastmod, loc,category,yrs,qtr))
+            h.append((lastmod, loc, category, yrs, qtr))
 
-        df = pd.DataFrame(h, columns=['lastmod', 'sitemap_url','category','yrs','qtr'])
+        df = pd.DataFrame(h, columns=['lastmod', 'sitemap_url', 'category', 'yrs', 'qtr'])
         df['lastmod'] = pd.to_datetime(df['lastmod'])
         df['uuid'] = df['sitemap_url'].map(lambda x: uuid.uuid5(uuid.NAMESPACE_DNS, str(x)).hex)
         return df
@@ -60,13 +60,52 @@ class ParserFormBeFore2015(object):
         sitemap_df = cls.parser_sitemap(sitemap)
         cls.upload(sitemap_df, obj=Source.tasks_links_yrs, table=table, db=db)
 
+
 class ParseFullIndex(object):
     @staticmethod
-    def get_one(obj,table='sitemap_before2015', db='EDAGR'):
-        sql = f'select * from {db}.{table} where status = 0 '
+    def get_all(obj, table='sitemap_before2015', db='EDAGR'):
+        sql = f'select * from {db}.{table} where status = 0 and category = "full-index" order by yrs asc'
         return obj.sql2data(sql)
+
+    @staticmethod
+    def parser_urlset(urlset):
+        sitemap_obj = HTML(urlset)
+        sites = sitemap_obj.xpath('*/*/url')
+        h = []
+        for site in sites:
+            lastmod = site.xpath('lastmod/text()')[0]
+            loc = site.xpath('loc/text()')[0]
+            changefreq = site.xpath('changefreq/text()')[0]
+            priority = site.xpath('priority/text()')[0]
+            h.append((lastmod, loc, changefreq, priority))
+
+        df = pd.DataFrame(h, columns=['lastmod', 'sitemap_url', 'changefreq', 'priority'])
+        df['lastmod'] = pd.to_datetime(df['lastmod'])
+        # df['uuid'] = df['sitemap_url'].map(lambda x: uuid.uuid5(uuid.NAMESPACE_DNS, str(x)).hex)
+        return df
+
+    @classmethod
+    def run_task(cls, tasks):
+        for row,task in tasks.iterrows():
+            sitemap_url = task['sitemap_url']
+            uuid = task['uuid']
+            yrs = task['yrs']
+            qtr = task['qtr']
+            print(1)
+            r = requests.get(sitemap_url)
+            cls.parser_urlset(r.content)
+
+
+
+
+
+
+
 if __name__ == '__main__':
     # ParserFormBeFore2015.update(sitemap='https://www.sec.gov/Archives/edgar/daily-index/sitemap.xml',
     #                             table='sitemap_before2015', db='EDAGR')
-    ParseFullIndex
+    obj = Source.tasks_links_yrs
+    s = ParseFullIndex.get_all(obj,table='sitemap_before2015', db='EDAGR')
+    ParseFullIndex.run_task(s)
+
     pass

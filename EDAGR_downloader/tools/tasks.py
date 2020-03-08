@@ -10,8 +10,7 @@ from EDAGR_downloader.tools.db import Source
 from EDAGR_downloader.tools.header import Header
 
 
-def get_task(obj, db, table,order_by=''):
-
+def get_task(obj, db, table, order_by=''):
     sql = f'select * from {db}.{table} where status = 0 {order_by} limit 1'
     rest = obj.sql2data(sql)
 
@@ -194,7 +193,7 @@ class TaskCreatorfile(object):
 
     # return get_task(obj=obj,db=db,table=table)
     @staticmethod
-    def download_file(res,session=None):
+    def download_file(res, session=None):
         url = res['url'][0]
         filename = res['Name'][0]
         yrs = int(res['yrs'][0])
@@ -210,15 +209,16 @@ class TaskCreatorfile(object):
 
         file_path = f'{path}/{filename}'
         with open(file_path, "wb") as code:
-            code.write(r.content)
+            # code.write(r.content)
 
-            # for chunk in r.iter_content(chunk_size=1024):  # 边下载边存硬盘
-            #     if chunk:
-            #         code.write(chunk)
-        print(file_path+' downloaded!')
+            for chunk in r.iter_content(chunk_size=1024):  # 边下载边存硬盘
+                if chunk:
+                    code.write(chunk)
+        print(file_path + ' downloaded!')
 
 
-def run(base_url='https://www.sec.gov/Archives/edgar/daily-index/', download_base_url=True, download_qtr_url=True, download_file=True):
+def run(base_url='https://www.sec.gov/Archives/edgar/daily-index/', download_base_url=True, download_qtr_url=True,
+        download_file=True):
     if download_base_url:
         TaskCreatorYrs.auto_update_year(base_url=base_url)
     if download_qtr_url:

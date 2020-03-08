@@ -11,8 +11,10 @@ from EDAGR_downloader.tools.header import Header
 
 
 def get_task(obj, db, table,order_by=''):
+
     sql = f'select * from {db}.{table} where status = 0 {order_by} limit 1'
     rest = obj.sql2data(sql)
+
     if rest.empty:
         msg = 'no available task'
         print(msg)
@@ -178,9 +180,10 @@ class TaskCreatorfile(object):
     @classmethod
     def download(cls, obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file'):
         while 1:
+            print('get task!')
             status, res = get_task(obj=obj, db=db, table=table, order_by='order by yrs desc')
             uuid = res['uuid_file'].values[0]
-            print(f'{uuid} downloading ')
+            print(f'{uuid} got and downloading ')
             if status != 'empty':
                 cls.download_file(res)
                 cls.rm_task(uuid, obj=obj, db=db, table=table)
@@ -191,7 +194,7 @@ class TaskCreatorfile(object):
 
     # return get_task(obj=obj,db=db,table=table)
     @staticmethod
-    def download_file(res):
+    def download_file(res,session=None):
         url = res['url'][0]
         filename = res['Name'][0]
         yrs = int(res['yrs'][0])
@@ -202,13 +205,16 @@ class TaskCreatorfile(object):
             pass
         else:
             os.makedirs(path)
-        r = requests.get(url, stream=True)
+        session = requests if session is None else session
+        r = session.get(url, stream=True)
 
         file_path = f'{path}/{filename}'
         with open(file_path, "wb") as code:
-            for chunk in r.iter_content(chunk_size=1024):  # 边下载边存硬盘
-                if chunk:
-                    code.write(chunk)
+            code.write(r.content)
+
+            # for chunk in r.iter_content(chunk_size=1024):  # 边下载边存硬盘
+            #     if chunk:
+            #         code.write(chunk)
         print(file_path+' downloaded!')
 
 

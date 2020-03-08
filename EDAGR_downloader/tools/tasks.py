@@ -159,8 +159,8 @@ class TaskCreatorQtr(object):
                 # sql = f'select * from {db}.{table} where status = 0 limit 1'
                 print('task: {} done with info[ yrs:{} | qtr:{} ] '.format(task['uuid'][0], task['yrs'][0],
                                                                            task['QTR'][0]))
-                uuid = task['uuid'].values[0]
-                a = f"UPDATE {db}.{source_table} SET status = 1 WHERE uuid = '{uuid}' and status = 0 "
+                uu_id = task['uuid'].values[0]
+                a = f"UPDATE {db}.{source_table} SET status = 1 WHERE uuid = '{uu_id}' and status = 0 "
                 # sql = f'select * from {db}.{source_table} where status = 0 limit 1'
                 Source.tasks_links_yrs.Excutesql(a)
             else:

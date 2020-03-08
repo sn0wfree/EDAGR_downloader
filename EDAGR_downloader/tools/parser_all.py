@@ -1,6 +1,7 @@
 # coding=utf-8
 import datetime
 import os
+import time
 import uuid
 
 import pandas as pd
@@ -81,31 +82,40 @@ class ParseFullIndex(object):
 
         df = pd.DataFrame(h, columns=['lastmod', 'sitemap_url', 'changefreq', 'priority'])
         df['lastmod'] = pd.to_datetime(df['lastmod'])
-        # df['uuid'] = df['sitemap_url'].map(lambda x: uuid.uuid5(uuid.NAMESPACE_DNS, str(x)).hex)
+        df['single_uuid'] = df['sitemap_url'].map(lambda x: uuid.uuid5(uuid.NAMESPACE_DNS, str(x)).hex)
         return df
 
     @classmethod
-    def run_task(cls, tasks):
-        for row,task in tasks.iterrows():
+    def run_task(cls, tasks, session=None):
+        session = requests if session is None else session
+        for row, task in tasks.iterrows():
             sitemap_url = task['sitemap_url']
             uuid = task['uuid']
             yrs = task['yrs']
             qtr = task['qtr']
-            print(1)
-            r = requests.get(sitemap_url)
-            cls.parser_urlset(r.content)
+            r = session.get(sitemap_url)
+            df = cls.parser_urlset(r.content)
+            df['sitemap_uuid'] = uuid
+            df['yrs'] = yrs
+            df['qtr'] = qtr
+            yield df, uuid
 
-
-
-
-
+    @classmethod
+    def main_task(cls, obj=Source.tasks_links_yrs, tasks_table='sitemap_before2015', tasks_db='EDAGR'):
+        session = requests.sessions.session()
+        tasks = cls.get_all(obj, table=tasks_table, db=tasks_db)
+        for df, uu_id in cls.run_task(tasks, session=session):
+            obj.df2sql(df, 'final_file_url', db=tasks_db, csv_store_path='/tmp/')
+            sql = f"UPDATE {tasks_db}.{tasks_table} SET status = 1 WHERE  status =  0 and uuid='{uu_id}' "
+            print(f'downloaded {uu_id}')
+            obj.Excutesql(sql)
+            print('sleep 5s')
+            time.sleep(5)
 
 
 if __name__ == '__main__':
     # ParserFormBeFore2015.update(sitemap='https://www.sec.gov/Archives/edgar/daily-index/sitemap.xml',
     #                             table='sitemap_before2015', db='EDAGR')
     obj = Source.tasks_links_yrs
-    s = ParseFullIndex.get_all(obj,table='sitemap_before2015', db='EDAGR')
-    ParseFullIndex.run_task(s)
-
+    ParseFullIndex.main_task(obj, tasks_table='sitemap_before2015', tasks_db='EDAGR')
     pass

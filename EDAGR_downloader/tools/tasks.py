@@ -10,8 +10,8 @@ from EDAGR_downloader.tools.db import Source
 from EDAGR_downloader.tools.header import Header
 
 
-def get_task(obj, db, table):
-    sql = f'select * from {db}.{table} where status = 0 limit 1'
+def get_task(obj, db, table,order_by=''):
+    sql = f'select * from {db}.{table} where status = 0 {order_by} limit 1'
     rest = obj.sql2data(sql)
     if rest.empty:
         msg = 'no available task'
@@ -169,8 +169,8 @@ class TaskCreatorQtr(object):
 
 class TaskCreatorfile(object):
     @staticmethod
-    def rm_task(res, obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file'):
-        uuid = res['uuid_file'].values[0]
+    def rm_task(uuid, obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file'):
+        # uuid = res['uuid_file'].values[0]
         sql = f"UPDATE {db}.{table} SET status = 1 WHERE  status =  0 and uuid_file='{uuid}' "
         obj.Excutesql(sql)
         print(uuid)
@@ -178,13 +178,16 @@ class TaskCreatorfile(object):
     @classmethod
     def download(cls, obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file'):
         while 1:
-            status, res = get_task(obj=obj, db=db, table=table)
+            status, res = get_task(obj=obj, db=db, table=table, order_by='order by yrs desc')
+            uuid = res['uuid_file'].values[0]
+            print(f'{uuid} downloading ')
             if status != 'empty':
                 cls.download_file(res)
-                cls.rm_task(res, obj=obj, db=db, table=table)
+                cls.rm_task(uuid, obj=obj, db=db, table=table)
+                print(f'{uuid} downloaded ')
             else:
                 break
-            time.sleep(1)
+            time.sleep(5)
 
     # return get_task(obj=obj,db=db,table=table)
     @staticmethod
@@ -215,7 +218,7 @@ def run(base_url='https://www.sec.gov/Archives/edgar/daily-index/'):
     # TaskCreatorfile.get_1_task()
     # sql = 'SELECT Size FROM `tasks_links_file`'
     # c = Source.tasks_links_yrs.sql2data(sql)
-    TaskCreatorfile.download()
+    TaskCreatorfile.download(obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file')
 
 
 if __name__ == '__main__':

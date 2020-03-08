@@ -7,7 +7,7 @@ from lxml.etree import HTML
 
 refresh = 24 * 60 * 60
 now_ym = datetime.datetime.now().strftime("%Y-%m")
-requests_cache.install_cache(f'{now_ym}.db', expire_after=refresh)
+# requests_cache.install_cache(f'{now_ym}.db', expire_after=refresh)
 import requests
 
 # -------------------

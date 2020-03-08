@@ -229,7 +229,7 @@ def run(base_url='https://www.sec.gov/Archives/edgar/daily-index/',
     # sql = 'SELECT Size FROM `tasks_links_file`'
     # c = Source.tasks_links_yrs.sql2data(sql)
     if download_file:
-        TaskCreatorfile.download(obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file',store_path=None)
+        TaskCreatorfile.download(obj=Source.tasks_links_yrs, db='EDAGR', table='tasks_links_file', store_path='./data')
 
 
 if __name__ == '__main__':
